@@ -17,10 +17,78 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.net.URI;
 
+class PathTreeItem extends TreeItem<FileItem> {
+    private boolean isLeaf = false;
+    private boolean isFirstTimeChildren = true;
+    private boolean isFirstTimeLeft = true;
+
+    private PathTreeItem(FileItem fileItem) {
+        super(fileItem);
+    }
+
+    public static TreeItem<FileItem> createNode(File file) {
+        return new PathTreeItem(new FileItem(file));
+    }
+
+    @Override
+    public ObservableList<TreeItem<FileItem>> getChildren() {
+        if (isFirstTimeChildren) {
+            isFirstTimeChildren = false;
+            super.getChildren().setAll(buildChildren(this));
+        }
+        return super.getChildren();
+    }
+
+    @Override
+    public boolean isLeaf() {
+        if (isFirstTimeLeft) {
+            isFirstTimeLeft = false;
+            File f = (File) getValue().getValue();
+            isLeaf = f.isFile();
+        }
+        return isLeaf;
+    }
+
+    private ObservableList<TreeItem<FileItem>> buildChildren(TreeItem<FileItem> treeItem) {
+        File f = treeItem.getValue().getValue();
+        if (f != null && f.isDirectory()) {
+            File[] files = f.listFiles();
+            if (files != null) {
+                ObservableList<TreeItem<FileItem>> children = FXCollections.observableArrayList();
+
+                for (File childFile : files) {
+                    children.add(createNode(childFile));
+                }
+
+                return children;
+            }
+        }
+
+        return FXCollections.emptyObservableList();
+    }
+}
+
+class FileItem {
+    private File file;
+    public FileItem(File file) {
+        this.file = file;
+    }
+    public File getValue() {
+        return file;
+    }
+    @Override
+    public String toString() {
+        if (file.getName() == null) {
+            return file.toString();
+        } else {
+            return file.getName().toString(); // showing file name on the TreeView
+        }
+    }        
+}
 public class ZazoFX extends Application {
 
     private TextArea editorPane;
-    private TreeView<File> tree;
+    private TreeView<FileItem> tree;
     private String currentFileName = "";
     private boolean hasChanges = false;
 
@@ -36,18 +104,19 @@ public class ZazoFX extends Application {
         BorderPane borderPane = new BorderPane();
 
         // Create the tree view
-        TreeItem<File> rootItem = createNode(new File(System.getProperty("user.dir")));
+        TreeItem<FileItem> rootItem = createNode(new File(System.getProperty("user.dir")));
         tree = new TreeView<>(rootItem);
         tree.setShowRoot(true);
         tree.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-        tree.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<TreeItem<File>>() {
+        tree.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<TreeItem<FileItem>>() {
             @Override
-            public void changed(ObservableValue<? extends TreeItem<File>> observable, TreeItem<File> oldValue, TreeItem<File> newValue) {
+            public void changed(ObservableValue<? extends TreeItem<FileItem>> observable, TreeItem<FileItem> oldValue, TreeItem<FileItem> newValue) {
                 if (newValue != null) {
-                    displayFile(newValue.getValue().toURI().toString());
+                    displayFile(newValue.getValue().getValue().toURI().toString());
                 }
             }
         });
+        tree.setPrefWidth(200);
 
         // Create the editor pane
         editorPane = new TextArea();
@@ -72,62 +141,8 @@ public class ZazoFX extends Application {
     // anonymously, but this could be better abstracted by creating a
     // 'FileTreeItem' subclass of TreeItem. However, this is left as an exercise
     // for the reader.
-    private TreeItem<File> createNode(final File f) {
-        return new TreeItem<File>(f) {
-            // We cache whether the File is a leaf or not. A File is a leaf if
-            // it is not a directory and does not have any files contained within
-            // it. We cache this as isLeaf() is called often, and doing the
-            // actual check on File is expensive.
-            private boolean isLeaf;
-
-            // We do the children and leaf testing only once, and then set these
-            // booleans to false so that we do not check again during this
-            // run. A more complete implementation may need to handle more
-            // dynamic file system situations (such as where a folder has files
-            // added after the TreeView is shown). Again, this is left as an
-            // exercise for the reader.
-            private boolean isFirstTimeChildren = true;
-            private boolean isFirstTimeLeaf = true;
-
-            @Override public ObservableList<TreeItem<File>> getChildren() {
-                if (isFirstTimeChildren) {
-                    isFirstTimeChildren = false;
-
-                    // First getChildren() call, so we actually go off and
-                    // determine the children of the File contained in this TreeItem.
-                    super.getChildren().setAll(buildChildren(this));
-                }
-                return super.getChildren();
-            }
-
-            @Override public boolean isLeaf() {
-                if (isFirstTimeLeaf) {
-                    isFirstTimeLeaf = false;
-                    File f = (File) getValue();
-                    isLeaf = f.isFile();
-                }
-
-                return isLeaf;
-            }
-
-            private ObservableList<TreeItem<File>> buildChildren(TreeItem<File> TreeItem) {
-                File f = TreeItem.getValue();
-                if (f != null && f.isDirectory()) {
-                    File[] files = f.listFiles();
-                    if (files != null) {
-                        ObservableList<TreeItem<File>> children = FXCollections.observableArrayList();
-
-                        for (File childFile : files) {
-                            children.add(createNode(childFile));
-                        }
-
-                        return children;
-                    }
-                }
-
-                return FXCollections.emptyObservableList();
-            }
-        };
+    private TreeItem<FileItem> createNode(final File f) {
+        return PathTreeItem.createNode(f);
     }
 
     private void displayFile(String url) {
