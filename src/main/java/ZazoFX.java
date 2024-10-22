@@ -6,14 +6,12 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Priority;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import javafx.collections.ObservableList;
 import javafx.collections.FXCollections;
-// some changes
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -120,16 +118,12 @@ public class ZazoFX extends Application {
         });
         tree.setMinWidth(100.0);
         tree.setStyle("-fx-font-family: Monaco; -fx-font-size: 16;");
-        
+
         // Create the editor pane
         editorPane = new TextArea();
         editorPane.textProperty().addListener((observable, oldValue, newValue) -> hasChanges = true);
         editorPane.setFont(Font.font("Monaco", FontWeight.NORMAL, 16));
-        // Layout
-        // HBox vbox = new HBox();
-        // HBox.setHgrow(tree, Priority.ALWAYS);
-        // HBox.setHgrow(editorPane, Priority.ALWAYS);
-        // vbox.getChildren().addAll(tree, editorPane);
+
         SplitPane vbox = new SplitPane();
         vbox.getItems().addAll(tree, editorPane);
         vbox.setDividerPositions(0.2f, 0.8f);
@@ -141,12 +135,6 @@ public class ZazoFX extends Application {
         primaryStage.show();
     }
 
- 
-    // This method creates a TreeItem to represent the given File. It does this
-    // by overriding the TreeItem.getChildren() and TreeItem.isLeaf() methods
-    // anonymously, but this could be better abstracted by creating a
-    // 'FileTreeItem' subclass of TreeItem. However, this is left as an exercise
-    // for the reader.
     private TreeItem<FileItem> createNode(final File f) {
         return PathTreeItem.createNode(f);
     }
