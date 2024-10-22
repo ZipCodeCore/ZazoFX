@@ -1,4 +1,4 @@
-package rocks.zipcode.zazo;
+
 
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
@@ -7,11 +7,11 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import javafx.collections.ObservableList;
 import javafx.collections.FXCollections;
-
+// some changes
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -54,9 +54,9 @@ public class ZazoFX extends Application {
         editorPane.textProperty().addListener((observable, oldValue, newValue) -> hasChanges = true);
 
         // Layout
-        VBox vbox = new VBox();
-        VBox.setVgrow(tree, Priority.ALWAYS);
-        VBox.setVgrow(editorPane, Priority.ALWAYS);
+        HBox vbox = new HBox();
+        HBox.setHgrow(tree, Priority.ALWAYS);
+        HBox.setHgrow(editorPane, Priority.ALWAYS);
         vbox.getChildren().addAll(tree, editorPane);
 
         borderPane.setCenter(vbox);

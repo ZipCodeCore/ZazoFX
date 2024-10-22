@@ -2,6 +2,13 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"type": "java",
+			"name": "ZazoFX",
+			"request": "launch",
+			"mainClass": "ZazoFX",
+			"projectName": "zazofx"
+		},
+		{
 			"vmArgs": "--module-path \"/Users/kristofer/LocalProjects/ZazoFX/lib\" --add-modules javafx.controls,javafx.fxml",
 			"type": "java",
 			"name": "Launch Current File",
